@@ -89,6 +89,28 @@ jupyter notebook notebooks/
 
 You can place experimental EDA, feature exploration, and prototype training code under `notebooks/`, then promote stable logic into reusable modules under `src/`.
 
+- **5. Run the prediction API locally**
+
+From the repo root, with a trained model at `models/model.pkl` (e.g. after running `python src/train.py --input ...`):
+
+```bash
+python src/serve.py
+```
+
+The API listens on `http://0.0.0.0:8000`. Health check and predict:
+
+```bash
+curl http://localhost:8000/health
+```
+
+```bash
+curl -X POST http://localhost:8000/predict \
+  -H "Content-Type: application/json" \
+  -d '{"data": [{"feature_a": 1.0, "feature_b": 2.0, "category": "A"}, {"feature_a": 2.0, "feature_b": 3.0, "category": "B"}]}'
+```
+
+Response: `{"probabilities": [0.12, 0.34]}` (positive-class probabilities for each row). Shut down with Ctrl+C.
+
 ---
 
 ## Scheduled retraining with GitHub Actions (high level)
