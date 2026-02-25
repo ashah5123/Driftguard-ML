@@ -54,6 +54,19 @@ It assumes you already have a model in production and provides the scaffolding t
 
 All commands below assume a Unix-like shell (macOS/Linux). On Windows, adapt the activation command for your shell.
 
+**Using Make (recommended):** from the repo root, run `make setup` once to create a venv and install dependencies. Then:
+
+| Command    | Description |
+|-----------|-------------|
+| `make drift`  | Run drift check (reference vs current in `data/processed/`) |
+| `make train`  | Train model on `data/processed/current.csv`, target `target`, MLflow experiment `local_run` |
+| `make serve`  | Start FastAPI app with uvicorn (reload on file changes) |
+| `make test`   | Run pytest (quiet) |
+| `make lint`   | Run ruff check |
+| `make format` | Run black formatter |
+
+Manual setup (if not using Make):
+
 - **1. Create and activate a virtual environment**
 
 ```bash
