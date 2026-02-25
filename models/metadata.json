@@ -1,0 +1,9 @@
+{
+  "cv_auc_mean": 0.2,
+  "cv_auc_std": 0.24494897427831783,
+  "timestamp": "2026-02-25T21:38:42.373259+00:00",
+  "target": "target",
+  "n_samples": 10,
+  "n_numeric": 2,
+  "n_categorical": 1
+}
