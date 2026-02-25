@@ -111,6 +111,17 @@ curl -X POST http://localhost:8000/predict \
 
 Response: `{"probabilities": [0.12, 0.34]}` (positive-class probabilities for each row). Shut down with Ctrl+C.
 
+- **6. Run the API with Docker**
+
+Build and run the FastAPI service in a container (ensure `models/model.pkl` exists so the image includes a trained model):
+
+```bash
+docker build -t driftguard-ml .
+docker run -p 8000:8000 driftguard-ml
+```
+
+Then open `http://localhost:8000/health` or send `POST /predict` as above. Stop the container with Ctrl+C or `docker stop <container_id>`.
+
 ---
 
 ## Scheduled retraining with GitHub Actions (high level)
