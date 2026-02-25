@@ -1,0 +1,21 @@
+name: Retrain (drift gate)
+
+on:
+  schedule:
+    - cron: "0 2 * * 0"   # weekly Sunday 02:00 UTC
+  workflow_dispatch:
+
+jobs:
+  validate-and-drift:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Data quality gate
+        run: python src/validate_data.py
+      - name: Drift check
+        run: python src/check_drift.py

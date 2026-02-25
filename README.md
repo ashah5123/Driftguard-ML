@@ -50,6 +50,21 @@ It assumes you already have a model in production and provides the scaffolding t
 
 ---
 
+## Data quality gate
+
+Before drift checks (and in the retrain workflow), `data/processed/current.csv` is validated by `src/validate_data.py`:
+
+- **Required columns** – All columns from `data/processed/reference.csv` must exist in current (or at least `feature1`, `feature2`, `target` if no reference).
+- **Target binary** – The target column must contain only 0 and 1.
+- **No all-null columns** – No column can be completely null.
+- **Numeric diversity** – Every numeric column must have at least two distinct values (avoids degenerate drift/fit).
+
+Validation uses Great Expectations minimally (programmatic expectations). Exit code **0** = pass, **1** = fail. In the scheduled retrain workflow, if the data quality gate fails, the job stops and drift check / retrain are not run.
+
+Run locally: `python src/validate_data.py`.
+
+---
+
 ## Local quickstart
 
 All commands below assume a Unix-like shell (macOS/Linux). On Windows, adapt the activation command for your shell.
