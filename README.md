@@ -74,6 +74,8 @@ pip install --upgrade pip
 pip install -r requirements.txt
 ```
 
+For linting and tests, also install dev tools: `pip install -r requirements-dev.txt`
+
 - **3. Run tests**
 
 ```bash
