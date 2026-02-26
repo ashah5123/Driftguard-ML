@@ -1,4 +1,4 @@
-.PHONY: setup drift train serve test lint format
+.PHONY: setup drift train serve test lint format data-download data-prep
 
 VENV := .venv
 PYTHON := $(VENV)/bin/python
@@ -13,7 +13,7 @@ drift:
 	$(PYTHON) src/check_drift.py
 
 train:
-	$(PYTHON) src/train.py --input data/processed/current.csv --target target --mlflow_experiment local_run
+	$(PYTHON) src/train.py --input data/processed/current.csv --target Delayed --mlflow_experiment local_run
 
 serve:
 	$(VENV)/bin/uvicorn src.serve:app --reload --host 0.0.0.0 --port 8000
@@ -26,3 +26,9 @@ lint:
 
 format:
 	$(VENV)/bin/black .
+
+data-download:
+	$(PYTHON) src/data/download_flights_sample.py
+
+data-prep:
+	$(PYTHON) src/data/preprocess_flights.py --reference-year 2021 --current-year 2022 --max-rows 2000000
