@@ -1,18 +1,19 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-CURRENT_CSV="data/processed/current.csv"
-BACKUP_CSV="data/processed/current.backup.csv"
+BASELINE="data/processed/current_baseline.csv"
+CURRENT="data/processed/current.csv"
 
-if [[ ! -f "$CURRENT_CSV" ]]; then
-  echo "Error: $CURRENT_CSV not found. Run 'make data-prep' (or ensure data/processed/current.csv exists) first." >&2
+if [[ ! -f "$CURRENT" ]]; then
+  echo "Error: $CURRENT not found. Run 'make data-prep' (or ensure data/processed/current.csv exists) first." >&2
   exit 1
 fi
 
-echo "== backing up current.csv =="
-cp "$CURRENT_CSV" "$BACKUP_CSV"
-
-trap 'echo "== restoring backup =="; mv -f "$BACKUP_CSV" "$CURRENT_CSV" || true' EXIT
+if [[ ! -f "$BASELINE" ]]; then
+  cp "$CURRENT" "$BASELINE"
+fi
+echo "== baseline ensured =="
+cp "$BASELINE" "$CURRENT"
 
 echo "== injecting drift =="
 python - <<'PY'
@@ -26,17 +27,16 @@ df.to_csv("data/processed/current.csv", index=False)
 print("Drift injected. Rows:", len(df))
 PY
 
-echo "== pre-retrain drift check (may return non-zero) =="
+echo "== pre-check =="
 python src/check_drift.py || true
 
-echo "== retraining model =="
+echo "== retrain =="
 make train
 
-echo "== restoring backup =="
-mv -f "$BACKUP_CSV" "$CURRENT_CSV" || true
-trap - EXIT
+echo "== restoring baseline =="
+cp "$BASELINE" "$CURRENT"
 
-echo "== post-retrain drift check (may return non-zero) =="
+echo "== post-check =="
 python src/check_drift.py || true
 
-echo "== demo-drift done =="
+echo "== done =="
