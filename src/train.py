@@ -34,12 +34,18 @@ def main() -> None:
     parser.add_argument("--mlflow_experiment", default="default", help="MLflow experiment name")
     args = parser.parse_args()
 
-    # Load and split
+    target = args.target
     df = load_data(args.input)
-    if args.target not in df.columns:
-        raise ValueError(f"Target column '{args.target}' not in data. Columns: {list(df.columns)}")
-    y = df[args.target]
-    X = df.drop(columns=[args.target])
+    if target not in df.columns:
+        raise ValueError(f"Target column '{target}' not in data. Columns: {list(df.columns)}")
+
+    feature_cols = [c for c in df.columns if c not in (target, "flight_date", "year")]
+    if not feature_cols:
+        raise ValueError("No feature columns left after excluding target and non-features.")
+    X = df[feature_cols]
+    y = df[target]
+
+    print(f"Feature columns ({len(feature_cols)}): {feature_cols}")
 
     numeric_features, categorical_features = _detect_feature_types(X)
     preprocessor = build_preprocessor(numeric_features, categorical_features)
@@ -73,7 +79,8 @@ def main() -> None:
             "cv_auc_mean": cv_auc_mean,
             "cv_auc_std": cv_auc_std,
             "timestamp": datetime.now(timezone.utc).isoformat(),
-            "target": args.target,
+            "target": target,
+            "feature_cols": feature_cols,
             "n_samples": int(len(X)),
             "n_numeric": len(numeric_features),
             "n_categorical": len(categorical_features),

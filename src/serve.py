@@ -1,26 +1,43 @@
 """FastAPI app: health check and predict using models/model.pkl."""
 
+import json
+import logging
 from contextlib import asynccontextmanager
 from pathlib import Path
 
 import joblib
 import pandas as pd
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field
 
+logger = logging.getLogger(__name__)
+
 MODEL_PATH = Path("models/model.pkl")
+METADATA_PATH = Path("models/metadata.json")
 model = None
+feature_cols: list[str] = []
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    global model
+    global model, feature_cols
     if MODEL_PATH.exists():
         model = joblib.load(MODEL_PATH)
     else:
         model = None
+    if METADATA_PATH.exists():
+        with open(METADATA_PATH) as f:
+            meta = json.load(f)
+        feature_cols[:] = meta.get("feature_cols", [])
+        if not feature_cols:
+            logger.error("models/metadata.json is missing 'feature_cols' or it is empty.")
+            raise RuntimeError("models/metadata.json must contain a non-empty 'feature_cols' list.")
+    else:
+        logger.error("models/metadata.json not found.")
+        raise RuntimeError("models/metadata.json not found; cannot load feature_cols.")
     yield
     model = None
+    feature_cols[:] = []
 
 
 app = FastAPI(title="DriftGuard-ML", lifespan=lifespan)
@@ -38,12 +55,20 @@ def health() -> dict[str, str]:
 
 
 @app.post("/predict")
-def predict(request: PredictRequest) -> dict[str, list[float]]:
+def predict(request: PredictRequest) -> dict:
     if model is None:
-        raise RuntimeError("Model not loaded; ensure models/model.pkl exists.")
-    X = pd.DataFrame(request.data)
+        raise HTTPException(status_code=503, detail="Model not loaded; ensure models/model.pkl exists.")
+    df = pd.DataFrame(request.data)
+    missing = set(feature_cols) - set(df.columns)
+    if missing:
+        raise HTTPException(
+            status_code=422,
+            detail={"missing_columns": sorted(list(missing))},
+        )
+    X = df[feature_cols]
     proba = model.predict_proba(X)[:, 1]
-    return {"probabilities": proba.tolist()}
+    predictions = (proba >= 0.5).astype(int).tolist()
+    return {"predictions": predictions, "probabilities": proba.tolist()}
 
 
 if __name__ == "__main__":
