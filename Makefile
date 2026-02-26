@@ -1,4 +1,4 @@
-.PHONY: setup drift train serve test lint format data-download data-prep
+.PHONY: setup drift train serve test lint format data-download data-prep demo-drift
 
 VENV := .venv
 PYTHON := $(VENV)/bin/python
@@ -32,3 +32,6 @@ data-download:
 
 data-prep:
 	$(PYTHON) src/data/preprocess_flights.py --reference-year 2021 --current-year 2022 --max-rows 2000000
+
+demo-drift:
+	bash scripts/demo_drift.sh
