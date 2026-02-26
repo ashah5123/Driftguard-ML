@@ -1,7 +1,7 @@
 # Runtime: training, serving, drift detection
 pandas==2.3.3
 numpy==2.4.2
-scikit-learn==1.8.0
+scikit-learn==1.7.2
 xgboost==3.2.0
 mlflow==3.10.0
 great_expectations==1.12.3
