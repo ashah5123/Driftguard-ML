@@ -18,11 +18,6 @@ jobs:
           python -V
           which python
           pip -V
-      - name: Show Python
-        run: |
-          python -V
-          which python
-          pip -V
       - name: Install dependencies
         run: pip install -r requirements.txt
       - name: Prepare processed data
