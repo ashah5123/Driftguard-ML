@@ -25,6 +25,10 @@ jobs:
           pip -V
       - name: Install dependencies
         run: pip install -r requirements.txt
+      - name: Prepare processed data
+        run: |
+          mkdir -p data/raw data/processed
+          python src/data/preprocess_flights.py --reference-year 2021 --current-year 2022 --max-rows 200000
       - name: Data quality gate
         run: python src/validate_data.py
       - name: Drift check
