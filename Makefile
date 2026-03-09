@@ -1,4 +1,4 @@
-.PHONY: setup drift train serve test lint format data-download data-prep demo-drift
+.PHONY: setup drift train retrain serve test lint format data-download data-prep demo-drift
 
 VENV := .venv
 PYTHON := $(VENV)/bin/python
@@ -13,6 +13,9 @@ drift:
 	$(PYTHON) src/check_drift.py
 
 train:
+	$(PYTHON) src/train.py --input data/processed/reference.csv --target Delayed --mlflow_experiment local_run
+
+retrain:
 	$(PYTHON) src/train.py --input data/processed/current.csv --target Delayed --mlflow_experiment local_run
 
 serve:

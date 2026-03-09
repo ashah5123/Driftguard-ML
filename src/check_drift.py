@@ -33,10 +33,36 @@ def main() -> int:
         print("[ERROR] Failed to load data:", e)
         return 1
 
+    # Determine which columns to evaluate drift on.
+    # Prefer feature_cols from models/metadata.json; fall back to
+    # "all numeric columns except obvious targets (Delayed/target)".
+    feature_cols = None
+    metadata_path = Path("models/metadata.json")
+    if metadata_path.exists():
+        try:
+            with open(metadata_path) as f:
+                meta = json.load(f)
+            cols = meta.get("feature_cols")
+            if isinstance(cols, list):
+                feature_cols = [c for c in cols if isinstance(c, str)]
+        except Exception as e:
+            print("[WARN] Failed to read models/metadata.json, falling back to numeric columns:", e)
+            feature_cols = None
+
+    if feature_cols:
+        candidate_cols = [
+            c for c in feature_cols
+            if c in reference_df.columns and c in current_df.columns
+        ]
+    else:
+        candidate_cols = [
+            c for c in reference_df.columns
+            if c not in {"Delayed", "target"} and c in current_df.columns
+        ]
+
     numeric_cols = [
-        c for c in reference_df.columns
+        c for c in candidate_cols
         if pd.api.types.is_numeric_dtype(reference_df[c])
-        and c in current_df.columns
     ]
     if not numeric_cols:
         print("[WARN] No numeric columns in common; nothing to check.")

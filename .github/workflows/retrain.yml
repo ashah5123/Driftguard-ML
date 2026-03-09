@@ -27,4 +27,9 @@ jobs:
       - name: Data quality gate
         run: python src/validate_data.py
       - name: Drift check
+        id: drift_check
         run: python src/check_drift.py
+        continue-on-error: true
+      - name: Retrain on drift
+        if: ${{ steps.drift_check.outcome == 'failure' }}
+        run: make retrain
